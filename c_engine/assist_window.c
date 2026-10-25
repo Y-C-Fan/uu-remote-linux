@@ -9,6 +9,19 @@
 #include <string.h>
 #include <dlfcn.h>
 
+#if !GLIB_CHECK_VERSION(2, 68, 0)
+/* g_memdup2 landed in GLib 2.68; older distro toolkits (Ubuntu 20.04 ships 2.64) only have
+ * g_memdup, whose guint length argument cannot express buffers over 4 GiB. */
+static gpointer g_memdup2(gconstpointer mem, gsize byte_size) {
+    gpointer new_block = NULL;
+    if (mem && byte_size != 0) {
+        new_block = g_malloc(byte_size);
+        memcpy(new_block, mem, byte_size);
+    }
+    return new_block;
+}
+#endif
+
 static const char *CSS =
     "window { background-color: #f5f6f8; }\n"
     "* { font-family: 'Noto Sans CJK SC', 'Noto Sans SC', sans-serif; }\n"
